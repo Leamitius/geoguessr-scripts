@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Geoguessr Gamemode Kodiak neu
+// @name         Kodiak Filter Gamemode 
 // @namespace    http://tampermonkey.net/
 // @version      1.8
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
