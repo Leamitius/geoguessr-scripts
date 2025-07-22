@@ -16,7 +16,7 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'Kodiak'; // <-- Enter Username
+const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
