@@ -8,7 +8,7 @@
 // @match        https://www.geoguessr.com/*
 // @run-at       document-start
 // @grant        unsafeWindow
-// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js/?v=15
+// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=15
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
 // ==/UserScript==
@@ -16,7 +16,7 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
+const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
@@ -25,7 +25,6 @@ function log(...args) {
 if (!GeoGuessrEventFramework) {
 	throw new Error('GeoGuessr World Score Reference requires GeoGuessr Event Framework');
 }
-
 
 
 function sendScore(score, gameId) {
@@ -106,37 +105,49 @@ async function fetchAndStoreUserFeatures() {
 
 
 function overrideWeiterButtonIfNeeded() {
-    const button = document.querySelector('button[data-qa="close-round-result"]');
-    if (!button) {
-        log('⚠️ Weiter button NOT found yet.');
-        return;
-    }
-    if (button.dataset.tamperHandled) {
-        //log('🔘 Weiter button already handled.');
-        return;
-    }
+    const maxRetries = 50; // retry for ~5 seconds if interval is 100ms
+    let attempts = 0;
 
-    button.dataset.tamperHandled = 'true';
-    const shouldGoBack = sessionStorage.getItem('roundJustEnded') === 'true';
-    log('🔘 Weiter button found. Should go back?', shouldGoBack);
-
-    if (shouldGoBack) {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            sessionStorage.removeItem('roundJustEnded');
-            log('🔙 Going back (window.history.back())');
-            window.history.back();
-        }, true);
-
-        // Update label
-        const labelSpan = button.querySelector('span.button_label__ERkjz');
-        if (labelSpan) {
-            labelSpan.textContent = 'Back';
-            log('📝 Button label changed to "Back"');
+    const interval = setInterval(() => {
+        const button = document.querySelector('button[data-qa="close-round-result"]');
+        if (!button) {
+            attempts++;
+            if (attempts >= maxRetries) {
+                log('⏱️ Timeout: "Weiter" button not found.');
+                clearInterval(interval);
+            }
+            return;
         }
-    }
+
+        clearInterval(interval); // stop checking once found
+
+        if (button.dataset.tamperHandled) {
+            log('🔘 Weiter button already handled.');
+            return;
+        }
+
+        button.dataset.tamperHandled = 'true';
+        const shouldGoBack = sessionStorage.getItem('roundJustEnded') === 'true';
+        log('🔘 Weiter button found. Should go back?', shouldGoBack);
+
+        if (shouldGoBack) {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sessionStorage.removeItem('roundJustEnded');
+                log('🔙 Going back (window.history.back())');
+                window.history.back();
+            }, true);
+
+            const labelSpan = button.querySelector('span.button_label__ERkjz');
+            if (labelSpan) {
+                labelSpan.textContent = 'Back';
+                log('📝 Button label changed to "Back"');
+            }
+        }
+    }, 100); // check every 100ms
 }
+
 
 
 fetchAndStoreUserFeatures();
@@ -146,6 +157,8 @@ GeoGuessrEventFramework.init().then(GEF => {
         log('🎯 round_end detected');
         log(event);
         sessionStorage.setItem('roundJustEnded', 'true');
+
+        overrideWeiterButtonIfNeeded()
 
         const state = event.detail;
         const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
