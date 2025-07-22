@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode 
 // @namespace    http://tampermonkey.net/
-// @version      1.9
+// @version      1.10
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -9,8 +9,8 @@
 // @run-at       document-start
 // @grant        unsafeWindow
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js/?v=15
-// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js?cachebust=1
-// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js?cachebust=1
+// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
+// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
 // ==/UserScript==
 
 
