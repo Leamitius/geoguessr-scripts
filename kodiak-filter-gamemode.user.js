@@ -9,8 +9,8 @@
 // @run-at       document-start
 // @grant        unsafeWindow
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js/?v=15
-// @downloadURL  https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.js
-// @updateURL    https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.js
+// @downloadURL  https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.user.js
+// @updateURL    https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.user.js
 // ==/UserScript==
 
 
