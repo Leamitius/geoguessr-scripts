@@ -9,9 +9,10 @@
 // @run-at       document-start
 // @grant        unsafeWindow
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js/?v=15
-// @downloadURL  https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/refs/heads/main/kodiak-filter-gamemode.js
-// @updateURL    https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/refs/heads/main/kodiak-filter-gamemode.js
+// @downloadURL  https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.js
+// @updateURL    https://raw.githubusercontent.com/Leamitius/geoguessr-scripts/main/kodiak-filter-gamemode.js
 // ==/UserScript==
+
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
