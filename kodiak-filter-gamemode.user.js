@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode 
 // @namespace    http://tampermonkey.net/
-// @version      1.12
+// @version      1.13
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -20,14 +20,14 @@ const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_scor
 const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
 
 
-const streak = 0;
+var streak = 0;
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
 }
 
 if (!GeoGuessrEventFramework) {
-	throw new Error('GeoGuessr World Score Reference requires GeoGuessr Event Framework');
+    throw new Error('GeoGuessr World Score Reference requires GeoGuessr Event Framework');
 }
 
 
@@ -59,60 +59,119 @@ const GSF = new GeoGuessrStreakFramework({
 });
 
 
-function sendScore(score, gameId) {
 
-	if(streak){
-		const streakDataRaw = localStorage.getItem("MW_GeoGuessrCountryStreak");
-        if (streakDataRaw) {
-            const streakData = JSON.parse(streakDataRaw);
-            if(streakData.guess_name === streakData.location_name){
-                console.log("richtiges land" + streakData.guess_name)
-		    score = 1;
-            }
+function waitForStreakChangeAndEvaluate() {
 
-        }
-	}
-
-    const payload = {
-        username: USERNAME,
-        score: score,
-        gameId: gameId || null
-    };
-
-    log('📤 Sending score to API:', payload);
-
-    fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-        .then(res => {
-        log('🌐 API status:', res.status);
-        return res.json().catch(() => {
-            log('⚠️ Response is not valid JSON');
-            return { error: 'Invalid JSON response' };
-        });
-    })
-        .then(data => {
-        log('✅ API response:', data);
-    })
-        .catch(err => {
-        log('❌ Fetch error:', err);
-    });
 }
+
+
+function sendScore(score, gameId) {
+    if (streak) {
+        let lastStreakRelevant = null;
+
+        const interval = setInterval(() => {
+            const raw = localStorage.getItem("MW_GeoGuessrCountryStreak");
+            if (!raw) return;
+
+            try {
+                const parsed = JSON.parse(raw);
+
+                // last_guess_identifier ignorieren
+                const { last_guess_identifier, ...relevant } = parsed;
+
+                if (!lastStreakRelevant) {
+                    lastStreakRelevant = relevant;
+                    return; // Erste Runde: nur speichern, nicht vergleichen
+                }
+
+                // Vergleiche alte und neue relevante Felder
+                const differences = [];
+                for (const key of Object.keys(relevant)) {
+                    if (relevant[key] !== lastStreakRelevant[key]) {
+                        differences.push({
+                            key,
+                            old: lastStreakRelevant[key],
+                            new: relevant[key]
+                        });
+                    }
+                }
+
+                if (differences.length > 0) {
+                    console.log("🕵️ Änderungen erkannt:");
+                    differences.forEach(diff => {
+                        console.log(` - ${diff.key}:`, diff.old, "→", diff.new);
+                    });
+
+                    lastStreakRelevant = { ...relevant }; // Update Zustand
+
+                    // Score berechnen
+                    let calculatedScore = 0;
+                    if (relevant.guess_name === relevant.location_name) {
+                        console.log("✅ Richtiges Land: " + relevant.guess_name);
+                        calculatedScore = 1;
+                    } else {
+                        console.log("❌ Falsches Land: " + relevant.guess_name + " ≠ " + relevant.location_name);
+                        calculatedScore = 0;
+                    }
+
+                    clearInterval(interval); // ⛔ Stoppe Überwachung
+                    log("📊 Final score for streak:", calculatedScore);
+                    actuallySendScore(calculatedScore, gameId);
+                }
+
+            } catch (err) {
+                console.warn("❗ Fehler beim Parsen oder Vergleichen:", err);
+            }
+        }, 100);
+    } else {
+        // Streak aus → direkt senden
+        log("➡️ Streak deaktiviert, übergebe Score direkt:", score);
+        actuallySendScore(score, gameId);
+    }
+
+    function actuallySendScore(finalScore, gameId) {
+        const payload = {
+            username: USERNAME,
+            score: finalScore,
+            gameId: gameId || null
+        };
+
+        log("📤 Sende an API:", payload);
+
+        fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(res => {
+            log("🌐 API Status:", res.status);
+            return res.json().catch(() => {
+                log("⚠️ API-Antwort ist kein JSON");
+                return { error: "Invalid JSON response" };
+            });
+        })
+            .then(data => {
+            log("✅ API Antwort:", data);
+        })
+            .catch(err => {
+            log("❌ Fehler beim Senden an API:", err);
+        });
+    }
+}
+
 
 async function fetchAndStoreUserFeatures() {
     const username = USERNAME; // your hardcoded username
     const oldBlinkTime = localStorage.getItem('blinkTime');
 
     try {
-	
-	const res = await fetch("https://pihezigo.myhostpoint.ch/api.php?action=get_streak");
-	const data = await res.json();
-	
-	streak = data.streak;
 
-	    
+        const res = await fetch("https://pihezigo.myhostpoint.ch/api.php?action=get_streak");
+        const streakdata = await res.json();
+
+        streak = streakdata.streak;
+        log(streak);
+
         const response = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_features&username=${encodeURIComponent(username)}`);
         const data = await response.json();
 
@@ -209,7 +268,7 @@ GeoGuessrEventFramework.init().then(GEF => {
         log(event);
         sessionStorage.setItem('roundJustEnded', 'true');
 
-        overrideWeiterButtonIfNeeded()
+        // overrideWeiterButtonIfNeeded()
 
         const state = event.detail;
         const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
