@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode 
 // @namespace    http://tampermonkey.net/
-// @version      1.11
+// @version      1.12
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -9,6 +9,7 @@
 // @run-at       document-start
 // @grant        unsafeWindow
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=15
+// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-streak-framework.min.js?v=15
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
 // ==/UserScript==
@@ -17,6 +18,9 @@
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
 const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
+
+
+const streak = 0;
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
@@ -27,7 +31,47 @@ if (!GeoGuessrEventFramework) {
 }
 
 
+const LANGUAGE = "en";   // ISO 639-1 language code - https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+const CHALLENGE = true;  // Set to false to disable streaks on challenge links
+const AUTOMATIC = true;  // Set to false for a manual counter (controlled by keyboard shortcuts only)
+
+
+const KEYBOARD_SHORTCUTS = {
+    reset: '0',     // reset streak to 0
+    increment: '1', // increment streak by 1
+    decrement: '2', // decrement streak by 1
+    restore: '8',   // restore your streak to it's previous value
+};
+
+const GSF = new GeoGuessrStreakFramework({
+    storage_identifier: 'MW_GeoGuessrCountryStreak',
+    name: 'Country Streak',
+    terms: {
+        single: 'country',
+        plural: 'countries'
+    },
+    enabled_on_challenges: CHALLENGE,
+    automatic: AUTOMATIC,
+    language: LANGUAGE,
+    only_match_country_code: true,
+    address_matches: ['country'],
+    keyboard_shortcuts: KEYBOARD_SHORTCUTS,
+});
+
+
 function sendScore(score, gameId) {
+
+	if(streak){
+		const streakDataRaw = localStorage.getItem("MW_GeoGuessrCountryStreak");
+        if (streakDataRaw) {
+            const streakData = JSON.parse(streakDataRaw);
+            if(streakData.guess_name === streakData.location_name){
+                console.log("richtiges land" + streakData.guess_name)
+		    score = 1;
+            }
+
+        }
+	}
 
     const payload = {
         username: USERNAME,
@@ -62,6 +106,13 @@ async function fetchAndStoreUserFeatures() {
     const oldBlinkTime = localStorage.getItem('blinkTime');
 
     try {
+	
+	const res = await fetch("https://pihezigo.myhostpoint.ch/api.php?action=get_streak");
+	const data = await res.json();
+	
+	streak = data.streak;
+
+	    
         const response = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_features&username=${encodeURIComponent(username)}`);
         const data = await response.json();
 
