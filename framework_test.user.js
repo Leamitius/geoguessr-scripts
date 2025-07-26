@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fraework test
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
