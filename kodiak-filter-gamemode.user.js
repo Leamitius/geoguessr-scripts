@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Kodiak Filter Gamemode neu
+// @name         Kodiak Filter Gamemode
 // @namespace    http://tampermonkey.net/
 // @version      1.6
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
