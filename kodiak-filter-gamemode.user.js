@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Kodiak Filter Gamemode 
+// @name         Kodiak Filter Gamemode neu
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      1.6
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -17,7 +17,7 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
+const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
 
 
 var streak = 0;
@@ -236,37 +236,35 @@ function overrideWeiterButtonIfNeeded() {
             return;
         }
 
-        button.dataset.tamperHandled = 'true';
-        const shouldGoBack = sessionStorage.getItem('roundJustEnded') === 'true';
-        log('🔘 Weiter button found. Should go back?', shouldGoBack);
 
-        if (shouldGoBack) {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                sessionStorage.removeItem('roundJustEnded');
-                log('🔙 Going back (window.history.back())');
-                window.history.back();
-            }, true);
 
-            const labelSpan = button.querySelector('span.button_label__ERkjz');
-            if (labelSpan) {
-                labelSpan.textContent = 'Back';
-                log('📝 Button label changed to "Back"');
-            }
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            sessionStorage.removeItem('roundJustEnded');
+            log('🔙 Going back (window.history.back())');
+            window.history.back();
+        }, true);
+
+        const labelSpan = button.querySelector('span.button_label__ERkjz');
+        if (labelSpan) {
+            labelSpan.textContent = 'Back';
+            log('📝 Button label changed to "Back"');
         }
+
     }, 100); // check every 100ms
 }
 
 
 
-fetchAndStoreUserFeatures();
 
-GeoGuessrEventFramework.init().then(GEF => {
+GeoGuessrEventFramework.init()
+    .then(GEF => {
+    fetchAndStoreUserFeatures();
+    log("init frame")
     GEF.events.addEventListener('round_end', (event) => {
         log('🎯 round_end detected');
         log(event);
-        sessionStorage.setItem('roundJustEnded', 'true');
 
         overrideWeiterButtonIfNeeded()
 
