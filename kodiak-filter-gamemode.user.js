@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.7
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -17,7 +17,7 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
+const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
 
 
 var streak = 0;
