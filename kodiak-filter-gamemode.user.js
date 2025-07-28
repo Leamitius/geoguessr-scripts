@@ -255,36 +255,40 @@ function overrideWeiterButtonIfNeeded() {
     }, 100); // check every 100ms
 }
 
-
-
+function waitForRoundToStart(callback) {
+    const state = JSON.parse(localStorage.getItem('GeoGuessrEventFramework_STATE'));
+    if (state && state.round_in_progress) {
+        callback();
+    } else {
+        log("Waiting for round to start...");
+        setTimeout(() => waitForRoundToStart(callback), 100);
+    }
+}
 
 GeoGuessrEventFramework.init()
     .then(GEF => {
-    fetchAndStoreUserFeatures();
-    
-    while(!JSON.parse(localStorage.getItem('GeoGuessrEventFramework_STATE')).round_in_progress){
-        log("Waiting for round to start...");
-        setTimeout(() => {}, 100); // wait 1 second before checking again
-    }
-    
-    log("init frame")
-    GEF.events.addEventListener('round_end', (event) => {
-        log('🎯 round_end detected');
-        log(event);
+        fetchAndStoreUserFeatures();
 
-        overrideWeiterButtonIfNeeded()
+        waitForRoundToStart(() => {
+            log("init frame");
+            GEF.events.addEventListener('round_end', (event) => {
+                log('🎯 round_end detected');
+                log(event);
 
-        const state = event.detail;
-        const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-        const score = roundData.score.amount ?? null;
-        const gameId = state.token ?? null;
+                overrideWeiterButtonIfNeeded();
 
-        log('📊 Extracted score:', score, '| Game ID:', gameId);
+                const state = event.detail;
+                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                const score = roundData.score.amount ?? null;
+                const gameId = state.token ?? null;
 
-        if (score !== null && !isNaN(score)) {
-            sendScore(score, gameId);
-        } else {
-            log('⚠️ Invalid or missing score');
-        }
+                log('📊 Extracted score:', score, '| Game ID:', gameId);
+
+                if (score !== null && !isNaN(score)) {
+                    sendScore(score, gameId);
+                } else {
+                    log('⚠️ Invalid or missing score');
+                }
+            });
+        });
     });
-});
