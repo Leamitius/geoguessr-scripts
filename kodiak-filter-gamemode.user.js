@@ -261,6 +261,12 @@ function overrideWeiterButtonIfNeeded() {
 GeoGuessrEventFramework.init()
     .then(GEF => {
     fetchAndStoreUserFeatures();
+    
+    while(!JSON.parse(localStorage.getItem('GeoGuessrEventFramework_STATE')).round_in_progress){
+        log("Waiting for round to start...");
+        setTimeout(() => {}, 100); // wait 1 second before checking again
+    }
+    
     log("init frame")
     GEF.events.addEventListener('round_end', (event) => {
         log('🎯 round_end detected');
