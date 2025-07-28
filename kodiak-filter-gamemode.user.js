@@ -276,7 +276,7 @@ GeoGuessrEventFramework.init()
                 log('🎯 round_end detected');
                 log(event);
 
-                //overrideWeiterButtonIfNeeded();
+                overrideWeiterButtonIfNeeded();
 
                 const state = event.detail;
                 const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
