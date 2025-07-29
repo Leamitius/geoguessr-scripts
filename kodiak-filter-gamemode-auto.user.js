@@ -36,7 +36,7 @@ if (!GeoGuessrEventFramework) {
 
 const keyMap = {
     "Pixelate 50%": "50",
-    "Pixelate 25": "25",
+    "Pixelate 25%": "25",
     "Grayscale": "extenssr-grayscale",
     "Invert colours": "extenssr-invert",
     "Sepia effect": "extenssr-sepia",
@@ -81,9 +81,6 @@ const GSF = new GeoGuessrStreakFramework({
 
 
 
-function waitForStreakChangeAndEvaluate() {
-
-}
 
 
 function sendScore(score, gameId) {
@@ -165,18 +162,18 @@ function sendScore(score, gameId) {
             body: JSON.stringify(payload)
         })
             .then(res => {
-            log("🌐 API Status:", res.status);
-            return res.json().catch(() => {
-                log("⚠️ API-Antwort ist kein JSON");
-                return { error: "Invalid JSON response" };
-            });
-        })
+                log("🌐 API Status:", res.status);
+                return res.json().catch(() => {
+                    log("⚠️ API-Antwort ist kein JSON");
+                    return { error: "Invalid JSON response" };
+                });
+            })
             .then(data => {
-            log("✅ API Antwort:", data);
-        })
+                log("✅ API Antwort:", data);
+            })
             .catch(err => {
-            log("❌ Fehler beim Senden an API:", err);
-        });
+                log("❌ Fehler beim Senden an API:", err);
+            });
     }
 }
 
@@ -184,6 +181,7 @@ function sendScore(score, gameId) {
 async function fetchAndStoreUserFeatures() {
     const username = USERNAME; // your hardcoded username
     const oldBlinkTime = localStorage.getItem('blinkTime');
+    const reloaded = localStorage.getItem("reloaded", false)
 
     try {
 
@@ -198,9 +196,44 @@ async function fetchAndStoreUserFeatures() {
 
         const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
         text = await testres.json();
-        const filter = text.split(", ");
-        log(text)
+        const filter = text.text.split(", ");
+        log(filter)
         ready = true; // Set the flag to true when data is ready
+
+        //set all key to false
+
+        Object.values(keyMap).forEach(key => {
+            if (key !== "50" && key !== "25") {
+                localStorage.setItem(key, "false");
+                log(`Set ${key} to false in localStorage`);
+            }
+        });
+        localStorage.setItem("extenssr-pixelateMap", false);
+
+
+        filter.forEach(name => {
+            const key = keyMap[name];
+            if (key) {
+                if (key === "50" || key === "25") {
+                    localStorage.setItem("extenssr-pixelateMap", true);
+                    localStorage.setItem("extenssr-pixelateScale", 300 * parseInt(key) / 100)
+                    log("set pixelateMap to true and pixelateScale to " + 300 * parseInt(key) / 100);
+                }
+                else{
+                    localStorage.setItem(key, "true");
+                log(`Set ${key} to true in localStorage`);
+                }
+                
+            } else {
+                log(`No mapping found for "${name}"`);
+            }
+        });
+
+
+
+
+
+
 
         if (!Array.isArray(data)) {
             console.warn("Invalid data from feature API:", data);
@@ -230,10 +263,15 @@ async function fetchAndStoreUserFeatures() {
 
         if (oldBlinkTime !== newBlinkTime) {
             console.log('blinkTime changed, reloading page...');
-            location.reload();
         } else {
             console.log('blinkTime unchanged, no reload.');
         }
+        if(reloaded !== "true") {
+            localStorage.setItem("reloaded", "true");
+            location.reload();
+            return;
+        }
+        localStorage.setItem("reloaded", "false");
 
     } catch (err) {
         console.error("❌ Failed to fetch user features:", err);
@@ -340,30 +378,30 @@ function waitForRoundToStart(callback) {
 
 GeoGuessrEventFramework.init()
     .then(GEF => {
-    fetchAndStoreUserFeatures();
+        fetchAndStoreUserFeatures();
 
-    waitForRoundToStart(() => {
-        log("init frame");
-        GEF.events.addEventListener('round_end', (event) => {
+        waitForRoundToStart(() => {
+            log("init frame");
+            GEF.events.addEventListener('round_end', (event) => {
 
-            log('🎯 round_end detected');
-            log(event);
+                log('🎯 round_end detected');
+                log(event);
 
-            overrideWeiterButtonIfNeeded();
+                overrideWeiterButtonIfNeeded();
 
-            const state = event.detail;
-            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-            const score = roundData.score.amount ?? null;
-            const gameId = state.token ?? null;
+                const state = event.detail;
+                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                const score = roundData.score.amount ?? null;
+                const gameId = state.token ?? null;
 
-            log('📊 Extracted score:', score, '| Game ID:', gameId);
+                log('📊 Extracted score:', score, '| Game ID:', gameId);
 
-            if (score !== null && !isNaN(score)) {
-                sendScore(score, gameId);
+                if (score !== null && !isNaN(score)) {
+                    sendScore(score, gameId);
 
-            } else {
-                log('⚠️ Invalid or missing score');
-            }
+                } else {
+                    log('⚠️ Invalid or missing score');
+                }
+            });
         });
     });
-});
