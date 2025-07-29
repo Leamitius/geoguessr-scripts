@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode
 // @namespace    http://tampermonkey.net/
-// @version      1.9
+// @version      1.8
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -17,10 +17,12 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
+const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
 
 
 var streak = 0;
+
+var text = "";
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
@@ -175,6 +177,10 @@ async function fetchAndStoreUserFeatures() {
         const response = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_features&username=${encodeURIComponent(username)}`);
         const data = await response.json();
 
+        const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
+        text = await res.json();
+
+
         if (!Array.isArray(data)) {
             console.warn("Invalid data from feature API:", data);
             return;
@@ -214,12 +220,34 @@ async function fetchAndStoreUserFeatures() {
 }
 
 
+function addCustomDiv() {
+    const parentDiv = document.querySelector('.result-layout_contentNew__vJbXy');
+    if (parentDiv && !document.getElementById('my-custom-div')) {
+        const newDiv = document.createElement('div');
+        newDiv.id = 'my-custom-div';
+        newDiv.textContent = 'These are your filters' + text;
+        newDiv.style.fontSize = '18px';
+        newDiv.style.fontWeight = '500';
+        newDiv.style.color = 'rgb(255, 255, 255)';
+        newDiv.style.padding = '10px 10px 0px';
+        newDiv.style.background = 'var(--ds-color-purple-100)';
+
+        parentDiv.prepend(newDiv); // oder .appendChild() am Ende
+    }
+}
+
+
+
 function overrideWeiterButtonIfNeeded() {
     const maxRetries = 50; // retry for ~5 seconds if interval is 100ms
     let attempts = 0;
 
     const interval = setInterval(() => {
         const button = document.querySelector('button[data-qa="close-round-result"]');
+
+
+        // Wiederhole regelmäßig den Versuch, das Element einzufügen
+
         if (!button) {
             attempts++;
             if (attempts >= maxRetries) {
@@ -261,36 +289,37 @@ function waitForRoundToStart(callback) {
         callback();
     } else {
         log("Waiting for round to start...");
+        addCustomDiv();
         setTimeout(() => waitForRoundToStart(callback), 100);
     }
 }
 
 GeoGuessrEventFramework.init()
     .then(GEF => {
-        fetchAndStoreUserFeatures();
+    fetchAndStoreUserFeatures();
 
-        waitForRoundToStart(() => {
-            log("init frame");
-            GEF.events.addEventListener('round_end', (event) => {
+    waitForRoundToStart(() => {
+        log("init frame");
+        GEF.events.addEventListener('round_end', (event) => {
 
-                log('🎯 round_end detected');
-                log(event);
+            log('🎯 round_end detected');
+            log(event);
 
-                overrideWeiterButtonIfNeeded();
+            overrideWeiterButtonIfNeeded();
 
-                const state = event.detail;
-                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-                const score = roundData.score.amount ?? null;
-                const gameId = state.token ?? null;
+            const state = event.detail;
+            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+            const score = roundData.score.amount ?? null;
+            const gameId = state.token ?? null;
 
-                log('📊 Extracted score:', score, '| Game ID:', gameId);
+            log('📊 Extracted score:', score, '| Game ID:', gameId);
 
-                if (score !== null && !isNaN(score)) {
-                    sendScore(score, gameId);
+            if (score !== null && !isNaN(score)) {
+                sendScore(score, gameId);
 
-                } else {
-                    log('⚠️ Invalid or missing score');
-                }
-            });
+            } else {
+                log('⚠️ Invalid or missing score');
+            }
         });
     });
+});
