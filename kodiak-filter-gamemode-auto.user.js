@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Kodiak Filter Gamemode
+// @name         Kodiak Filter Gamemode automatic
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.2
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -10,8 +10,8 @@
 // @grant        unsafeWindow
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=15
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-streak-framework.min.js?v=15
-// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
-// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode.user.js
+// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js
+// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js
 // ==/UserScript==
 
 
@@ -33,6 +33,23 @@ function log(...args) {
 if (!GeoGuessrEventFramework) {
     throw new Error('GeoGuessr World Score Reference requires GeoGuessr Event Framework');
 }
+
+const keyMap = {
+    "Pixelate 50%": "50",
+    "Pixelate 25": "25",
+    "Grayscale": "extenssr-grayscale",
+    "Invert colours": "extenssr-invert",
+    "Sepia effect": "extenssr-sepia",
+    "Mirror": "extenssr-mirror",
+    "Fish eye lens": "extenssr-fisheye",
+    "CTR TV filter": "extenssr-chromaticAberration",
+    "Edge filter": "extenssr-sobel",
+    "Vignette": "extenssr-vignette",
+    "Water effect": "extenssr-water",
+    "Min filter": "extenssr-min",
+    "Screen scambler": "extenssr-scramble",
+};
+
 
 
 const LANGUAGE = "en";   // ISO 639-1 language code - https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -181,6 +198,7 @@ async function fetchAndStoreUserFeatures() {
 
         const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
         text = await testres.json();
+        const filter = text.split(", ");
         log(text)
         ready = true; // Set the flag to true when data is ready
 
