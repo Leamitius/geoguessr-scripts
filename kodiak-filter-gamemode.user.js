@@ -24,6 +24,8 @@ var streak = 0;
 
 var text = "";
 
+var ready = false; // Flag to check if the page is ready
+
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
 }
@@ -146,18 +148,18 @@ function sendScore(score, gameId) {
             body: JSON.stringify(payload)
         })
             .then(res => {
-            log("🌐 API Status:", res.status);
-            return res.json().catch(() => {
-                log("⚠️ API-Antwort ist kein JSON");
-                return { error: "Invalid JSON response" };
-            });
-        })
+                log("🌐 API Status:", res.status);
+                return res.json().catch(() => {
+                    log("⚠️ API-Antwort ist kein JSON");
+                    return { error: "Invalid JSON response" };
+                });
+            })
             .then(data => {
-            log("✅ API Antwort:", data);
-        })
+                log("✅ API Antwort:", data);
+            })
             .catch(err => {
-            log("❌ Fehler beim Senden an API:", err);
-        });
+                log("❌ Fehler beim Senden an API:", err);
+            });
     }
 }
 
@@ -178,8 +180,9 @@ async function fetchAndStoreUserFeatures() {
         const data = await response.json();
 
         const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
-        text = await res.json();
-
+        text = await testres.json();
+        log(text)
+        ready = true; // Set the flag to true when data is ready
 
         if (!Array.isArray(data)) {
             console.warn("Invalid data from feature API:", data);
@@ -221,19 +224,22 @@ async function fetchAndStoreUserFeatures() {
 
 
 function addCustomDiv() {
-    const parentDiv = document.querySelector('.result-layout_contentNew__vJbXy');
-    if (parentDiv && !document.getElementById('my-custom-div')) {
-        const newDiv = document.createElement('div');
-        newDiv.id = 'my-custom-div';
-        newDiv.textContent = 'These are your filters' + text;
-        newDiv.style.fontSize = '18px';
-        newDiv.style.fontWeight = '500';
-        newDiv.style.color = 'rgb(255, 255, 255)';
-        newDiv.style.padding = '10px 10px 0px';
-        newDiv.style.background = 'var(--ds-color-purple-100)';
+    if (ready) {
+        const parentDiv = document.querySelector('.result-layout_contentNew__vJbXy');
+        if (parentDiv && !document.getElementById('my-custom-div')) {
+            const newDiv = document.createElement('div');
+            newDiv.id = 'my-custom-div';
+            newDiv.textContent = 'These are your filters' + text;
+            newDiv.style.fontSize = '18px';
+            newDiv.style.fontWeight = '500';
+            newDiv.style.color = 'rgb(255, 255, 255)';
+            newDiv.style.padding = '10px 10px 0px';
+            newDiv.style.background = 'var(--ds-color-purple-100)';
 
-        parentDiv.prepend(newDiv); // oder .appendChild() am Ende
+            parentDiv.prepend(newDiv); // oder .appendChild() am Ende
+        }
     }
+
 }
 
 
@@ -296,30 +302,30 @@ function waitForRoundToStart(callback) {
 
 GeoGuessrEventFramework.init()
     .then(GEF => {
-    fetchAndStoreUserFeatures();
+        fetchAndStoreUserFeatures();
 
-    waitForRoundToStart(() => {
-        log("init frame");
-        GEF.events.addEventListener('round_end', (event) => {
+        waitForRoundToStart(() => {
+            log("init frame");
+            GEF.events.addEventListener('round_end', (event) => {
 
-            log('🎯 round_end detected');
-            log(event);
+                log('🎯 round_end detected');
+                log(event);
 
-            overrideWeiterButtonIfNeeded();
+                overrideWeiterButtonIfNeeded();
 
-            const state = event.detail;
-            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-            const score = roundData.score.amount ?? null;
-            const gameId = state.token ?? null;
+                const state = event.detail;
+                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                const score = roundData.score.amount ?? null;
+                const gameId = state.token ?? null;
 
-            log('📊 Extracted score:', score, '| Game ID:', gameId);
+                log('📊 Extracted score:', score, '| Game ID:', gameId);
 
-            if (score !== null && !isNaN(score)) {
-                sendScore(score, gameId);
+                if (score !== null && !isNaN(score)) {
+                    sendScore(score, gameId);
 
-            } else {
-                log('⚠️ Invalid or missing score');
-            }
+                } else {
+                    log('⚠️ Invalid or missing score');
+                }
+            });
         });
     });
-});
