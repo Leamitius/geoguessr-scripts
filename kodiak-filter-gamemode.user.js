@@ -148,18 +148,18 @@ function sendScore(score, gameId) {
             body: JSON.stringify(payload)
         })
             .then(res => {
-                log("🌐 API Status:", res.status);
-                return res.json().catch(() => {
-                    log("⚠️ API-Antwort ist kein JSON");
-                    return { error: "Invalid JSON response" };
-                });
-            })
-            .then(data => {
-                log("✅ API Antwort:", data);
-            })
-            .catch(err => {
-                log("❌ Fehler beim Senden an API:", err);
+            log("🌐 API Status:", res.status);
+            return res.json().catch(() => {
+                log("⚠️ API-Antwort ist kein JSON");
+                return { error: "Invalid JSON response" };
             });
+        })
+            .then(data => {
+            log("✅ API Antwort:", data);
+        })
+            .catch(err => {
+            log("❌ Fehler beim Senden an API:", err);
+        });
     }
 }
 
@@ -224,23 +224,43 @@ async function fetchAndStoreUserFeatures() {
 
 
 function addCustomDiv() {
-    if (ready) {
-        const parentDiv = document.querySelector('.result-layout_contentNew__vJbXy');
-        if (parentDiv && !document.getElementById('my-custom-div')) {
-            const newDiv = document.createElement('div');
-            newDiv.id = 'my-custom-div';
-            newDiv.textContent = 'These are your filters' + text;
-            newDiv.style.fontSize = '18px';
-            newDiv.style.fontWeight = '500';
-            newDiv.style.color = 'rgb(255, 255, 255)';
-            newDiv.style.padding = '10px 10px 0px';
-            newDiv.style.background = 'var(--ds-color-purple-100)';
+    if (!ready) return;
 
-            parentDiv.prepend(newDiv); // oder .appendChild() am Ende
+    const existing = document.getElementById('my-custom-div');
+    if (existing) return;
+
+    const newDiv = document.createElement('div');
+    newDiv.id = 'my-custom-div';
+    newDiv.textContent = 'These are your filters: ' + text.text;
+    newDiv.style.fontSize = '18px';
+    newDiv.style.fontWeight = '600';
+    newDiv.style.color = 'white';
+    newDiv.style.padding = '12px';
+    newDiv.style.borderRadius = '8px';
+    newDiv.style.background = 'rgba(0, 0, 0, 0.6)';
+    newDiv.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+    newDiv.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.4)';
+    newDiv.style.opacity = '0';
+    newDiv.style.transition = 'opacity 0.3s ease-in-out';
+    newDiv.style.width = '50%'
+
+    setTimeout(() => newDiv.style.opacity = '1', 10);
+
+    const mainContainer = document.querySelector('.result-layout_contentNew__vJbXy');
+
+    if (mainContainer) {
+        newDiv.style.margin = '0 auto'
+        mainContainer.prepend(newDiv);
+    } else {
+        const fallback = document.querySelector('.spacer_space__z3BZm.spacer_height__49Hkf');
+        if (fallback) {
+            newDiv.style.margin = '10px auto';
+            fallback.innerHTML = ''; // clear it if you want only your text
+            fallback.appendChild(newDiv);
         }
     }
-
 }
+
 
 
 
@@ -302,30 +322,30 @@ function waitForRoundToStart(callback) {
 
 GeoGuessrEventFramework.init()
     .then(GEF => {
-        fetchAndStoreUserFeatures();
+    fetchAndStoreUserFeatures();
 
-        waitForRoundToStart(() => {
-            log("init frame");
-            GEF.events.addEventListener('round_end', (event) => {
+    waitForRoundToStart(() => {
+        log("init frame");
+        GEF.events.addEventListener('round_end', (event) => {
 
-                log('🎯 round_end detected');
-                log(event);
+            log('🎯 round_end detected');
+            log(event);
 
-                overrideWeiterButtonIfNeeded();
+            overrideWeiterButtonIfNeeded();
 
-                const state = event.detail;
-                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-                const score = roundData.score.amount ?? null;
-                const gameId = state.token ?? null;
+            const state = event.detail;
+            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+            const score = roundData.score.amount ?? null;
+            const gameId = state.token ?? null;
 
-                log('📊 Extracted score:', score, '| Game ID:', gameId);
+            log('📊 Extracted score:', score, '| Game ID:', gameId);
 
-                if (score !== null && !isNaN(score)) {
-                    sendScore(score, gameId);
+            if (score !== null && !isNaN(score)) {
+                sendScore(score, gameId);
 
-                } else {
-                    log('⚠️ Invalid or missing score');
-                }
-            });
+            } else {
+                log('⚠️ Invalid or missing score');
+            }
         });
     });
+});
