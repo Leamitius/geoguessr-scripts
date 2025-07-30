@@ -17,7 +17,7 @@
 
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
-const USERNAME = 'mael'; // <-- Enter Username (replace 'USER')
+const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
 
 
 var streak = 0;
