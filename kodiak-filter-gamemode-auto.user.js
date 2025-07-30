@@ -57,12 +57,7 @@ const CHALLENGE = true;  // Set to false to disable streaks on challenge links
 const AUTOMATIC = true;  // Set to false for a manual counter (controlled by keyboard shortcuts only)
 
 
-const KEYBOARD_SHORTCUTS = {
-    reset: '0',     // reset streak to 0
-    increment: '1', // increment streak by 1
-    decrement: '2', // decrement streak by 1
-    restore: '8',   // restore your streak to it's previous value
-};
+
 
 const GSF = new GeoGuessrStreakFramework({
     storage_identifier: 'MW_GeoGuessrCountryStreak',
@@ -76,7 +71,6 @@ const GSF = new GeoGuessrStreakFramework({
     language: LANGUAGE,
     only_match_country_code: true,
     address_matches: ['country'],
-    keyboard_shortcuts: KEYBOARD_SHORTCUTS,
 });
 
 
@@ -279,43 +273,6 @@ async function fetchAndStoreUserFeatures() {
 }
 
 
-function addCustomDiv() {
-    if (!ready) return;
-
-    const existing = document.getElementById('my-custom-div');
-    if (existing) return;
-
-    const newDiv = document.createElement('div');
-    newDiv.id = 'my-custom-div';
-    newDiv.textContent = 'These are your filters: ' + text.text;
-    newDiv.style.fontSize = '18px';
-    newDiv.style.fontWeight = '600';
-    newDiv.style.color = 'white';
-    newDiv.style.padding = '12px';
-    newDiv.style.borderRadius = '8px';
-    newDiv.style.background = 'rgba(0, 0, 0, 0.6)';
-    newDiv.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-    newDiv.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.4)';
-    newDiv.style.opacity = '0';
-    newDiv.style.transition = 'opacity 0.3s ease-in-out';
-    newDiv.style.width = '50%'
-
-    setTimeout(() => newDiv.style.opacity = '1', 10);
-
-    const mainContainer = document.querySelector('.result-layout_contentNew__vJbXy');
-
-    if (mainContainer) {
-        newDiv.style.margin = '0 auto'
-        mainContainer.prepend(newDiv);
-    } else {
-        const fallback = document.querySelector('.spacer_space__z3BZm.spacer_height__49Hkf');
-        if (fallback) {
-            newDiv.style.margin = '10px auto';
-            fallback.innerHTML = ''; // clear it if you want only your text
-            fallback.appendChild(newDiv);
-        }
-    }
-}
 
 
 
@@ -371,7 +328,6 @@ function waitForRoundToStart(callback) {
         callback();
     } else {
         log("Waiting for round to start...");
-        addCustomDiv();
         setTimeout(() => waitForRoundToStart(callback), 100);
     }
 }
