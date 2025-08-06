@@ -50,15 +50,9 @@ const keyMap = {
 
 
 
-const LANGUAGE = "en";   // ISO 639-1 language code - https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+const LANGUAGE = "de";   // ISO 639-1 language code - https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 const CHALLENGE = true;  // Set to false to disable streaks on challenge links
 const AUTOMATIC = true;  // Set to false for a manual counter (controlled by keyboard shortcuts only)
-
-
-
-
-
-
 
 
 
