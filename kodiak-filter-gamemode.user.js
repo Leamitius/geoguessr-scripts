@@ -53,7 +53,7 @@ function sendScore(score, gameId) {
         let lastStreakRelevant = null;
 
         const interval = setInterval(() => {
-            const raw = localStorage.getItem("MW_GeoGuessrCountryStreak");
+            const raw = localStorage.getItem("KodiakChallengeCountryStreak");
             if (!raw) return;
 
             try {
@@ -315,8 +315,9 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
     .then(() => {
 
         if (localStorage.getItem("kodiak-enable") === "true") {
+
             const GSF = new GeoGuessrStreakFramework({
-                storage_identifier: 'MW_GeoGuessrCountryStreak',
+                storage_identifier: 'KodiakChallengeCountryStreak',
                 name: 'Country Streak',
                 terms: {
                     single: 'country',
@@ -329,8 +330,6 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
                 address_matches: ['country'],
                 keyboard_shortcuts: KEYBOARD_SHORTCUTS,
             });
-
-
 
             GeoGuessrEventFramework.init()
                 .then(GEF => {
