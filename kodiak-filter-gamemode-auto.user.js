@@ -18,6 +18,7 @@
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
 const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
+const TIMEOUT = 60000; // after 60 seconds of inactivity the script will stop working
 
 
 var streak = 0;
@@ -343,7 +344,7 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
     .then(data => {
         var diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
         log("Time difference in milliseconds:", diffMS);
-        if (diffMS > 600000) {
+        if (diffMS > TIMEOUT) {
             localStorage.setItem("kodiak-enable", "false");
         }
         else {
