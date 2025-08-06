@@ -47,27 +47,6 @@ const KEYBOARD_SHORTCUTS = {
     restore: '8',   // restore your streak to it's previous value
 };
 
-const GSF = new GeoGuessrStreakFramework({
-    storage_identifier: 'MW_GeoGuessrCountryStreak',
-    name: 'Country Streak',
-    terms: {
-        single: 'country',
-        plural: 'countries'
-    },
-    enabled_on_challenges: CHALLENGE,
-    automatic: AUTOMATIC,
-    language: LANGUAGE,
-    only_match_country_code: true,
-    address_matches: ['country'],
-    keyboard_shortcuts: KEYBOARD_SHORTCUTS,
-});
-
-
-
-function waitForStreakChangeAndEvaluate() {
-
-}
-
 
 function sendScore(score, gameId) {
     if (streak) {
@@ -148,18 +127,18 @@ function sendScore(score, gameId) {
             body: JSON.stringify(payload)
         })
             .then(res => {
-            log("🌐 API Status:", res.status);
-            return res.json().catch(() => {
-                log("⚠️ API-Antwort ist kein JSON");
-                return { error: "Invalid JSON response" };
-            });
-        })
+                log("🌐 API Status:", res.status);
+                return res.json().catch(() => {
+                    log("⚠️ API-Antwort ist kein JSON");
+                    return { error: "Invalid JSON response" };
+                });
+            })
             .then(data => {
-            log("✅ API Antwort:", data);
-        })
+                log("✅ API Antwort:", data);
+            })
             .catch(err => {
-            log("❌ Fehler beim Senden an API:", err);
-        });
+                log("❌ Fehler beim Senden an API:", err);
+            });
     }
 }
 
@@ -320,32 +299,63 @@ function waitForRoundToStart(callback) {
     }
 }
 
-GeoGuessrEventFramework.init()
-    .then(GEF => {
-    fetchAndStoreUserFeatures();
+if (localStorage.getItem("kodiak-enable")) {
+    const timestamp = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`).json().timestamp;
+    diffMS = new Date() - new Date(timestamp.replace(' ', 'T'));
+    log("Time difference in milliseconds:", diffMS);
+    if(diffMS > 600000){
+        localStorage.setItem("kodiak-enable", "false");
+    }
+    else{
+        localStorage.setItem("kodiak-enable", "true");
+    }
+}
 
-    waitForRoundToStart(() => {
-        log("init frame");
-        GEF.events.addEventListener('round_end', (event) => {
-
-            log('🎯 round_end detected');
-            log(event);
-
-            overrideWeiterButtonIfNeeded();
-
-            const state = event.detail;
-            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-            const score = roundData.score.amount ?? null;
-            const gameId = state.token ?? null;
-
-            log('📊 Extracted score:', score, '| Game ID:', gameId);
-
-            if (score !== null && !isNaN(score)) {
-                sendScore(score, gameId);
-
-            } else {
-                log('⚠️ Invalid or missing score');
-            }
-        });
+if (localStorage.getItem("kodiak-enable") === "true") {
+    const GSF = new GeoGuessrStreakFramework({
+        storage_identifier: 'MW_GeoGuessrCountryStreak',
+        name: 'Country Streak',
+        terms: {
+            single: 'country',
+            plural: 'countries'
+        },
+        enabled_on_challenges: CHALLENGE,
+        automatic: AUTOMATIC,
+        language: LANGUAGE,
+        only_match_country_code: true,
+        address_matches: ['country'],
+        keyboard_shortcuts: KEYBOARD_SHORTCUTS,
     });
-});
+
+
+
+    GeoGuessrEventFramework.init()
+        .then(GEF => {
+            fetchAndStoreUserFeatures();
+
+            waitForRoundToStart(() => {
+                log("init frame");
+                GEF.events.addEventListener('round_end', (event) => {
+
+                    log('🎯 round_end detected');
+                    log(event);
+
+                    overrideWeiterButtonIfNeeded();
+
+                    const state = event.detail;
+                    const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                    const score = roundData.score.amount ?? null;
+                    const gameId = state.token ?? null;
+
+                    log('📊 Extracted score:', score, '| Game ID:', gameId);
+
+                    if (score !== null && !isNaN(score)) {
+                        sendScore(score, gameId);
+
+                    } else {
+                        log('⚠️ Invalid or missing score');
+                    }
+                });
+            });
+        });
+}
