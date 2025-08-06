@@ -192,21 +192,46 @@ async function fetchAndStoreUserFeatures() {
         localStorage.setItem("extenssr-pixelateMap", false);
 
 
+        // filter.forEach(name => {
+
+        //     const key = keyMap[name];
+        //     if (key) {
+        //         if (key === "50" || key === "25") {
+        //             localStorage.setItem("extenssr-pixelateMap", true);
+        //             localStorage.setItem("extenssr-pixelateScale", 300 * parseInt(key) / 100)
+        //             log("set pixelateMap to true and pixelateScale to " + 300 * parseInt(key) / 100);
+        //         }
+        //         else {
+        //             localStorage.setItem(key, "true");
+        //             log(`Set ${key} to true in localStorage`);
+        //         }
+
+        //     } else {
+        //         log(`No mapping found for "${name}"`);
+        //     }
+        // });
+
         filter.forEach(name => {
+
             const key = keyMap[name];
             if (key) {
-                if (key === "50" || key === "25") {
+                localStorage.setItem(key, "true");
+                log(`Set ${key} to true in localStorage`);
+            } else {
+                if (name.startsWith("Pixelate")) {
+                    // name = "Pixelate 30%"
+                    // Extract the number after Pixelate (supports float) without %
+                    const match = name.match(/Pixelate ([\d.]+)/);
+                    const pixelateNumber = match ? parseFloat(match[1]) : null;
                     localStorage.setItem("extenssr-pixelateMap", true);
-                    localStorage.setItem("extenssr-pixelateScale", 300 * parseInt(key) / 100)
-                    log("set pixelateMap to true and pixelateScale to " + 300 * parseInt(key) / 100);
+                    localStorage.setItem("extenssr-pixelateScale", 300 * pixelateNumber / 100)
+                    log("set pixelateMap to true and pixelateScale to " + 300 * pixelateNumber / 100);
+
                 }
                 else {
-                    localStorage.setItem(key, "true");
-                    log(`Set ${key} to true in localStorage`);
-                }
+                    log(`No mapping found for "${name}"`);
 
-            } else {
-                log(`No mapping found for "${name}"`);
+                }
             }
         });
 
