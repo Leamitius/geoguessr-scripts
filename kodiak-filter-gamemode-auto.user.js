@@ -35,8 +35,6 @@ if (!GeoGuessrEventFramework) {
 }
 
 const keyMap = {
-    "Pixelate 50%": "50",
-    "Pixelate 25%": "25",
     "Grayscale": "extenssr-grayscale",
     "Invert colours": "extenssr-invert",
     "Sepia effect": "extenssr-sepia",
