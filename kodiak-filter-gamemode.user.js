@@ -299,17 +299,22 @@ function waitForRoundToStart(callback) {
     }
 }
 
-if (localStorage.getItem("kodiak-enable")) {
-    const timestamp = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`).json().timestamp;
-    diffMS = new Date() - new Date(timestamp.replace(' ', 'T'));
-    log("Time difference in milliseconds:", diffMS);
-    if(diffMS > 600000){
-        localStorage.setItem("kodiak-enable", "false");
-    }
-    else{
-        localStorage.setItem("kodiak-enable", "true");
-    }
-}
+
+fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`)
+    .then(res => res.json())
+    .then(data => {
+
+        // var timestamp = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
+        // timestamp = await timestamp.json().timestamp
+        diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
+        log("Time difference in milliseconds:", diffMS);
+        if (diffMS > 600000) {
+            localStorage.setItem("kodiak-enable", "false");
+        }
+        else {
+            localStorage.setItem("kodiak-enable", "true");
+        }
+    });
 
 if (localStorage.getItem("kodiak-enable") === "true") {
     const GSF = new GeoGuessrStreakFramework({
