@@ -294,7 +294,7 @@ function waitForRoundToStart(callback) {
     if (state && state.round_in_progress) {
         callback();
     } else {
-        log("Waiting for round to start...");
+        // log("Waiting for round to start...");
         addCustomDiv();
         setTimeout(() => waitForRoundToStart(callback), 100);
     }
