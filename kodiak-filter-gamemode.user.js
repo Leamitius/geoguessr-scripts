@@ -155,10 +155,10 @@ async function fetchAndStoreUserFeatures() {
         streak = streakdata.streak;
         log(streak);
 
-        const response = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_features&username=${encodeURIComponent(username)}`);
+        const response = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_features&username=${encodeURIComponent(USERNAME)}`);
         const data = await response.json();
 
-        const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
+        const testres = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(USERNAME)}`);
         text = await testres.json();
         log(text)
         ready = true; // Set the flag to true when data is ready
@@ -300,13 +300,10 @@ function waitForRoundToStart(callback) {
 }
 
 
-fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`)
+fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(USERNAME)}`)
     .then(res => res.json())
     .then(data => {
-
-        // var timestamp = await fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(username)}`);
-        // timestamp = await timestamp.json().timestamp
-        diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
+        var diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
         log("Time difference in milliseconds:", diffMS);
         if (diffMS > 600000) {
             localStorage.setItem("kodiak-enable", "false");
@@ -314,53 +311,55 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
         else {
             localStorage.setItem("kodiak-enable", "true");
         }
-    });
+    })
+    .then(() => {
 
-if (localStorage.getItem("kodiak-enable") === "true") {
-    const GSF = new GeoGuessrStreakFramework({
-        storage_identifier: 'MW_GeoGuessrCountryStreak',
-        name: 'Country Streak',
-        terms: {
-            single: 'country',
-            plural: 'countries'
-        },
-        enabled_on_challenges: CHALLENGE,
-        automatic: AUTOMATIC,
-        language: LANGUAGE,
-        only_match_country_code: true,
-        address_matches: ['country'],
-        keyboard_shortcuts: KEYBOARD_SHORTCUTS,
-    });
-
-
-
-    GeoGuessrEventFramework.init()
-        .then(GEF => {
-            fetchAndStoreUserFeatures();
-
-            waitForRoundToStart(() => {
-                log("init frame");
-                GEF.events.addEventListener('round_end', (event) => {
-
-                    log('🎯 round_end detected');
-                    log(event);
-
-                    overrideWeiterButtonIfNeeded();
-
-                    const state = event.detail;
-                    const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-                    const score = roundData.score.amount ?? null;
-                    const gameId = state.token ?? null;
-
-                    log('📊 Extracted score:', score, '| Game ID:', gameId);
-
-                    if (score !== null && !isNaN(score)) {
-                        sendScore(score, gameId);
-
-                    } else {
-                        log('⚠️ Invalid or missing score');
-                    }
-                });
+        if (localStorage.getItem("kodiak-enable") === "true") {
+            const GSF = new GeoGuessrStreakFramework({
+                storage_identifier: 'MW_GeoGuessrCountryStreak',
+                name: 'Country Streak',
+                terms: {
+                    single: 'country',
+                    plural: 'countries'
+                },
+                enabled_on_challenges: CHALLENGE,
+                automatic: AUTOMATIC,
+                language: LANGUAGE,
+                only_match_country_code: true,
+                address_matches: ['country'],
+                keyboard_shortcuts: KEYBOARD_SHORTCUTS,
             });
-        });
-}
+
+
+
+            GeoGuessrEventFramework.init()
+                .then(GEF => {
+                    fetchAndStoreUserFeatures();
+
+                    waitForRoundToStart(() => {
+                        log("init frame");
+                        GEF.events.addEventListener('round_end', (event) => {
+
+                            log('🎯 round_end detected');
+                            log(event);
+
+                            overrideWeiterButtonIfNeeded();
+
+                            const state = event.detail;
+                            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                            const score = roundData.score.amount ?? null;
+                            const gameId = state.token ?? null;
+
+                            log('📊 Extracted score:', score, '| Game ID:', gameId);
+
+                            if (score !== null && !isNaN(score)) {
+                                sendScore(score, gameId);
+
+                            } else {
+                                log('⚠️ Invalid or missing score');
+                            }
+                        });
+                    });
+                });
+        }
+    });
