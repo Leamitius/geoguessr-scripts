@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kodiak Filter Gamemode
 // @namespace    http://tampermonkey.net/
-// @version      1.11
+// @version      1.12
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
 // @author       Mael
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
@@ -361,5 +361,26 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
                         });
                     });
                 });
+        }
+        else {
+            let resetCount = 0;
+            let changed = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith("extenssr-")) {
+                    if (localStorage.getItem(key) !== "false") {
+                        localStorage.setItem(key, "false");
+                        resetCount++;
+                        changed = true;
+                    }
+                }
+            }
+            console.log("Reset extenssr keys:", resetCount);
+            sendResponse({ success: true, resetCount });
+            if (changed) {
+                location.reload();
+            } else {
+                console.log("No extenssr keys needed resetting, no reload.");
+            }
         }
     });
