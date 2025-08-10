@@ -376,7 +376,6 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
                 }
             }
             console.log("Reset extenssr keys:", resetCount);
-            sendResponse({ success: true, resetCount });
             if (changed) {
                 location.reload();
             } else {
