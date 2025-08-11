@@ -41,7 +41,7 @@ const keyMap = {
     "Sepia effect": "extenssr-sepia",
     "Mirror": "extenssr-mirror",
     "Fish eye lens": "extenssr-fisheye",
-    "CTR TV filter": "extenssr-chromaticAberration",
+    "CRT TV filter": "extenssr-chromaticAberration",
     "Edge filter": "extenssr-sobel",
     "Vignette": "extenssr-vignette",
     "Water effect": "extenssr-water",
