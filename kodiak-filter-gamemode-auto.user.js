@@ -215,7 +215,8 @@ async function fetchAndStoreUserFeatures() {
                     // name = "Pixelate 30%"
                     // Extract the number after Pixelate (supports float) without %
                     const match = name.match(/Pixelate ([\d.]+)/);
-                    const pixelateNumber = match ? parseFloat(match[1]) : null;
+                    var pixelateNumber = match ? parseFloat(match[1]) : null;
+                    pixelateNumber = 100 - pixelateNumber; // Convert to percentage
                     localStorage.setItem("extenssr-pixelateMap", true);
                     localStorage.setItem("extenssr-pixelateScale", 300 * pixelateNumber / 100)
                     log("set pixelateMap to true and pixelateScale to " + 300 * pixelateNumber / 100);
