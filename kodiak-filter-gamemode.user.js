@@ -375,6 +375,11 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
                     }
                 }
             }
+            if (localStorage.getItem("blinkEnabled") !== "false") {
+                localStorage.setItem("blinkEnabled", "false");
+                resetCount++;
+                changed = true;
+            }
             console.log("Reset extenssr keys:", resetCount);
             if (changed) {
                 location.reload();
