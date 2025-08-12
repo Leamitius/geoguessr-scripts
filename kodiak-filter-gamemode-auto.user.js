@@ -46,7 +46,7 @@ const keyMap = {
     "Vignette": "extenssr-vignette",
     "Water effect": "extenssr-water",
     "Min filter": "extenssr-min",
-    "Screen scambler": "extenssr-scramble",
+    "Screen scrambler": "extenssr-scramble",
 };
 
 
