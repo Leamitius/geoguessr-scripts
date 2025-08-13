@@ -383,9 +383,9 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
 
                             overrideWeiterButtonIfNeeded();
 
-                            const state = event.detail;
-                            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-                            const score = roundData.score.amount ?? null;
+                            const state = event.detail.fetchResponse;
+                            const guess = state.guesses?.[state.guesses.length - 1] ?? {};
+                            const score = guess.roundScoreInPoints ?? null;
                             const gameId = state.token ?? null;
 
                             log('📊 Extracted score:', score, '| Game ID:', gameId);
