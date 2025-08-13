@@ -8,7 +8,7 @@
 // @match        https://www.geoguessr.com/*
 // @run-at       document-start
 // @grant        unsafeWindow
-// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=15
+// @require      https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/eventframework.js
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-streak-framework.min.js?v=15
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js

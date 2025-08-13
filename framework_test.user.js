@@ -1,21 +1,27 @@
 // ==UserScript==
-// @name         fraework test
+// @name         GeoGuessr Eventframework with Responses
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
-// @author       Mael
-// @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
+// @version      2.0
+// @description  Trigger round_start and round_end with response data
 // @match        https://www.geoguessr.com/*
+// @grant        none
 // @run-at       document-start
 // @grant        unsafeWindow
-// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=15
-// @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-streak-framework.min.js?v=15
+// @require      https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/eventframework.js
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/framework_test.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/framework_test.user.js
 // ==/UserScript==
 
-GeoGuessrEventFramework.init().then(GEF => {
-    GEF.events.addEventListener('round_end', (event) => {
-        alert("Round ended")
-    });
+
+
+
+
+document.addEventListener('round_start', (event) => {
+    console.log('Round started!');
+    // console.log('XHR response:', event.detail.xhrResponse);
+});
+
+document.addEventListener('round_end', (event) => {
+    console.log('Round ended!');
+    console.log('Fetch response:', event.detail.fetchResponse.player.guesses);
 });
