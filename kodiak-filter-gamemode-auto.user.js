@@ -339,91 +339,92 @@ function waitForRoundToStart(callback) {
 }
 
 
+document.addEventListener('DOMContentLoaded', () => {
+    fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(USERNAME)}`)
+        .then(res => res.json())
+        .then(data => {
+            var diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
+            log("Time difference in milliseconds:", diffMS);
+            if (diffMS > TIMEOUT) {
+                localStorage.setItem("kodiak-enable", "false");
+            }
+            else {
+                localStorage.setItem("kodiak-enable", "true");
+            }
+        })
+        .then(() => {
+            if (localStorage.getItem("kodiak-enable") === "true") {
 
-fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encodeURIComponent(USERNAME)}`)
-    .then(res => res.json())
-    .then(data => {
-        var diffMS = new Date() - new Date(data.timestamp.replace(' ', 'T'));
-        log("Time difference in milliseconds:", diffMS);
-        if (diffMS > TIMEOUT) {
-            localStorage.setItem("kodiak-enable", "false");
-        }
-        else {
-            localStorage.setItem("kodiak-enable", "true");
-        }
-    })
-    .then(() => {
-        if (localStorage.getItem("kodiak-enable") === "true") {
-
-            const GSF = new GeoGuessrStreakFramework({
-                storage_identifier: 'KodiakChallengeCountryStreak',
-                name: 'Country Streak',
-                terms: {
-                    single: 'country',
-                    plural: 'countries'
-                },
-                enabled_on_challenges: CHALLENGE,
-                automatic: AUTOMATIC,
-                language: LANGUAGE,
-                only_match_country_code: true,
-                address_matches: ['country'],
-            });
-
-
-            GeoGuessrEventFramework.init()
-                .then(GEF => {
-                    fetchAndStoreUserFeatures();
-
-                    waitForRoundToStart(() => {
-                        log("init frame");
-                        GEF.events.addEventListener('round_end', (event) => {
-
-                            log('🎯 round_end detected');
-                            log(event);
-
-                            overrideWeiterButtonIfNeeded();
-
-                            const state = event.detail;
-                            const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
-                            const score = roundData.score.amount ?? null;
-                            const gameId = state.token ?? null;
-
-                            log('📊 Extracted score:', score, '| Game ID:', gameId);
-
-                            if (score !== null && !isNaN(score)) {
-                                sendScore(score, gameId);
-
-                            } else {
-                                log('⚠️ Invalid or missing score');
-                            }
-                        });
-                    });
+                const GSF = new GeoGuessrStreakFramework({
+                    storage_identifier: 'KodiakChallengeCountryStreak',
+                    name: 'Country Streak',
+                    terms: {
+                        single: 'country',
+                        plural: 'countries'
+                    },
+                    enabled_on_challenges: CHALLENGE,
+                    automatic: AUTOMATIC,
+                    language: LANGUAGE,
+                    only_match_country_code: true,
+                    address_matches: ['country'],
                 });
 
-        }
-        else {
-            let resetCount = 0;
-            let changed = false;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith("extenssr-")) {
-                    if (localStorage.getItem(key) !== "false") {
-                        localStorage.setItem(key, "false");
-                        resetCount++;
-                        changed = true;
+
+                GeoGuessrEventFramework.init()
+                    .then(GEF => {
+                        fetchAndStoreUserFeatures();
+
+                        waitForRoundToStart(() => {
+                            log("init frame");
+                            GEF.events.addEventListener('round_end', (event) => {
+
+                                log('🎯 round_end detected');
+                                log(event);
+
+                                overrideWeiterButtonIfNeeded();
+
+                                const state = event.detail;
+                                const roundData = state.rounds?.[state.rounds.length - 1] ?? {};
+                                const score = roundData.score.amount ?? null;
+                                const gameId = state.token ?? null;
+
+                                log('📊 Extracted score:', score, '| Game ID:', gameId);
+
+                                if (score !== null && !isNaN(score)) {
+                                    sendScore(score, gameId);
+
+                                } else {
+                                    log('⚠️ Invalid or missing score');
+                                }
+                            });
+                        });
+                    });
+
+            }
+            else {
+                let resetCount = 0;
+                let changed = false;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith("extenssr-")) {
+                        if (localStorage.getItem(key) !== "false") {
+                            localStorage.setItem(key, "false");
+                            resetCount++;
+                            changed = true;
+                        }
                     }
                 }
+                if (localStorage.getItem("blinkEnabled") !== "false") {
+                    localStorage.setItem("blinkEnabled", "false");
+                    resetCount++;
+                    changed = true;
+                }
+                console.log("Reset extenssr keys:", resetCount);
+                if (changed) {
+                    location.reload();
+                } else {
+                    console.log("No extenssr keys needed resetting, no reload.");
+                }
             }
-            if (localStorage.getItem("blinkEnabled") !== "false") {
-                localStorage.setItem("blinkEnabled", "false");
-                resetCount++;
-                changed = true;
-            }
-            console.log("Reset extenssr keys:", resetCount);
-            if (changed) {
-                location.reload();
-            } else {
-                console.log("No extenssr keys needed resetting, no reload.");
-            }
-        }
-    });
+        });
+});
