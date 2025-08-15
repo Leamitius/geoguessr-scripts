@@ -184,7 +184,7 @@ async function fetchAndStoreUserFeatures() {
         });
         localStorage.setItem("extenssr-pixelateMap", false);
 
-
+        
         // filter.forEach(name => {
 
         //     const key = keyMap[name];
