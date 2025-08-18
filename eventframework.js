@@ -39,6 +39,7 @@
         return originalFetch.apply(this, args).then(async response => {
             try {
                 const u = getURLFromFetchArgs(args);
+                console.log(u)
                 if (isExactGameFetch(u)) {
                     // clone response so we can read it
                     const cloned = response.clone();
