@@ -28,40 +28,26 @@
         return u.pathname === `/api/v3/games/${gid}` && !u.search;
     }
 
-    let fetchDetected = false;
-    let xhrDetected = false;
-    let fetchResponseData = null;
-    let xhrResponseData = null;
-    let combinedTimeout = null;
-
     function triggerEvent(name, data) {
-        console.log(`>>> Event: ${name}`);
+        console.log(`>>> Event: ${name}`, data);
         document.dispatchEvent(new CustomEvent(name, { detail: data }));
     }
 
-    // --- Intercept fetch ---
+    // --- Intercept fetch (round_end) ---
     const originalFetch = window.fetch;
     window.fetch = function (...args) {
         return originalFetch.apply(this, args).then(async response => {
             try {
                 const u = getURLFromFetchArgs(args);
                 if (isExactGameFetch(u)) {
-                    fetchDetected = true;
-
-                    // clone response so we can read it without breaking normal behavior
+                    // clone response so we can read it
                     const cloned = response.clone();
-                    fetchResponseData = await cloned.json().catch(() => null);
+                    const fetchResponseData = await cloned.json().catch(() => null);
 
-                    clearTimeout(combinedTimeout);
-                    combinedTimeout = setTimeout(() => {
-                        if (fetchDetected && xhrDetected) {
-                            triggerEvent('round_end', { fetchResponse: fetchResponseData });
-                        }
-                        fetchDetected = false;
-                        xhrDetected = false;
-                        fetchResponseData = null;
-                        xhrResponseData = null;
-                    }, 500);
+                    // wait a bit to let the XHR fire (but ignore it)
+                    setTimeout(() => {
+                        triggerEvent('round_end', { fetchResponse: fetchResponseData });
+                    }, 300);
                 }
             } catch (e) {
                 console.warn("[Fetch] detection error:", e);
@@ -70,7 +56,7 @@
         });
     };
 
-    // --- Intercept XHR ---
+    // --- Intercept XHR (round_start) ---
     const originalOpen = XMLHttpRequest.prototype.open;
     const originalSend = XMLHttpRequest.prototype.send;
 
@@ -83,29 +69,30 @@
     XMLHttpRequest.prototype.send = function (body) {
         if (this._isTarget) {
             this.addEventListener('load', () => {
-                xhrDetected = true;
-
+                let xhrResponseData;
                 try {
                     xhrResponseData = JSON.parse(this.responseText);
                 } catch {
                     xhrResponseData = this.responseText;
                 }
 
-                clearTimeout(combinedTimeout);
-                combinedTimeout = setTimeout(() => {
-                    if (xhrDetected && !fetchDetected) {
-                        triggerEvent('round_start', { xhrResponse: xhrResponseData });
-                    } else if (xhrDetected && fetchDetected) {
-                        triggerEvent('round_end', { fetchResponse: fetchResponseData });
-                    }
-
-                    fetchDetected = false;
-                    xhrDetected = false;
-                    fetchResponseData = null;
-                    xhrResponseData = null;
-                }, 300);
+                // fire immediately → round_start
+                triggerEvent('round_start', { xhrResponse: xhrResponseData });
             });
         }
         return originalSend.apply(this, arguments);
     };
 })();
+
+
+
+document.addEventListener("round_start", function (event) {
+    localStorage.setItem("roundStatus", "started");
+
+    // Handle round start logic here
+});
+
+document.addEventListener("round_end", function (event) {
+    localStorage.setItem("roundStatus", "ended");
+    // Handle round end logic here
+});

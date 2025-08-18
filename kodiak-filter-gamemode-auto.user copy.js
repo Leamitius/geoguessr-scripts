@@ -329,8 +329,8 @@ function overrideWeiterButtonIfNeeded() {
 }
 
 function waitForRoundToStart(callback) {
-    const state = JSON.parse(localStorage.getItem('GeoGuessrEventFramework_STATE'));
-    if (state && state.round_in_progress) {
+    const state = JSON.parse(localStorage.getItem('roundStatus'));
+    if (state && state == "started") {
         callback();
     } else {
         // log("Waiting for round to start...");
