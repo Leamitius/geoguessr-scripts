@@ -23,7 +23,7 @@
     }
 
     function triggerEvent(name, data) {
-        console.log(`>>> Event: ${name}`, data);
+        console.log(`>>>< Event: ${name}`, data);
         document.dispatchEvent(new CustomEvent(name, { detail: data }));
     }
 
