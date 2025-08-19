@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Kodiak Filter Gamemode automatic
+// @name         Kodiak Filter Gamemode automatic copy
 // @namespace    http://tampermonkey.net/
 // @version      1.5
 // @description  Submits score to API and overrides "Weiter" button with full debug logging enabled.
@@ -367,38 +367,34 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
                 language: LANGUAGE,
                 only_match_country_code: true,
                 address_matches: ['country'],
+            })
+
+            fetchAndStoreUserFeatures();
+
+            log("init frame");
+            document.addEventListener('round_end', (event) => {
+
+                log('🎯 round_end detected');
+                log(event);
+
+                overrideWeiterButtonIfNeeded();
+
+                const state = event.detail.fetchResponse;
+                const guess = state.guesses?.[state.guesses.length - 1] ?? {};
+                const score = guess.roundScoreInPoints ?? null;
+                const gameId = state.token ?? null;
+
+                log('📊 Extracted score:', score, '| Game ID:', gameId);
+
+                if (score !== null && !isNaN(score)) {
+                    sendScore(score, gameId);
+
+                } else {
+                    log('⚠️ Invalid or missing score');
+                }
             });
+            // });
 
-
-            GeoGuessrEventFramework.init()
-                .then(GEF => {
-                    fetchAndStoreUserFeatures();
-
-                    waitForRoundToStart(() => {
-                        log("init frame");
-                        GEF.events.addEventListener('round_end', (event) => {
-
-                            log('🎯 round_end detected');
-                            log(event);
-
-                            overrideWeiterButtonIfNeeded();
-
-                            const state = event.detail.fetchResponse;
-                            const guess = state.guesses?.[state.guesses.length - 1] ?? {};
-                            const score = guess.roundScoreInPoints ?? null;
-                            const gameId = state.token ?? null;
-
-                            log('📊 Extracted score:', score, '| Game ID:', gameId);
-
-                            if (score !== null && !isNaN(score)) {
-                                sendScore(score, gameId);
-
-                            } else {
-                                log('⚠️ Invalid or missing score');
-                            }
-                        });
-                    });
-                });
 
         }
         else {
