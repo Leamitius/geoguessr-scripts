@@ -8,7 +8,7 @@
 // @match        https://www.geoguessr.com/*
 // @run-at       document-start
 // @grant        unsafeWindow
-// @require      https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/eventframework.js
+// @require      https://pihezigo.myhostpoint.ch/js/framework.js
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-streak-framework.min.js?v=15
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/kodiak-filter-gamemode-auto.user.js
@@ -18,7 +18,7 @@
 const DEBUG = true;
 const API_ENDPOINT = 'https://pihezigo.myhostpoint.ch/api.php?action=submit_score';
 const USERNAME = 'USER'; // <-- Enter Username (replace 'USER')
-const TIMEOUT = 60000; // after 60 seconds of inactivity the script will stop working
+const TIMEOUT = 60000000000000000000; // after 60 seconds of inactivity the script will stop working
 
 
 var streak = 0;
@@ -26,6 +26,12 @@ var streak = 0;
 var text = "";
 
 var ready = false; // Flag to check if the page is ready
+
+var state;
+var guess;
+var score;
+var gameId;
+var lastRoundCC;
 
 function log(...args) {
     if (DEBUG) console.log('[GeoTamper]', ...args);
@@ -59,62 +65,93 @@ const AUTOMATIC = true;  // Set to false for a manual counter (controlled by key
 
 function sendScore(score, gameId) {
     if (streak) {
-        let lastStreakRelevant = null;
 
-        const interval = setInterval(() => {
-            const raw = localStorage.getItem("KodiakChallengeCountryStreak");
-            if (!raw) return;
+        try {
+            const lat = guess.lat;
+            const lng = guess.lng;
+            // https://nominatim.openstreetmap.org/reverse.php?lat=-43.53097&lon=172.63691&zoom=18&format=jsonv2
+            fetch(`https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lng}&zoom=2&format=jsonv2`)
+                .then(response => response.json())
+                .then(data => {
+                    const countryCode = data.address.country_code
 
-            try {
-                const parsed = JSON.parse(raw);
+                    if (countryCode !== lastRoundCC) {
+                        console.warn(`Country code mismatch: ${countryCode} vs ${lastRoundCC}`);
+                        actuallySendScore(0, gameId);
 
-                // last_guess_identifier ignorieren
-                const { last_guess_identifier, ...relevant } = parsed;
-
-                if (!lastStreakRelevant) {
-                    lastStreakRelevant = relevant;
-                    return; // Erste Runde: nur speichern, nicht vergleichen
-                }
-
-                // Vergleiche alte und neue relevante Felder
-                const differences = [];
-                for (const key of Object.keys(relevant)) {
-                    if (relevant[key] !== lastStreakRelevant[key]) {
-                        differences.push({
-                            key,
-                            old: lastStreakRelevant[key],
-                            new: relevant[key]
-                        });
                     }
-                }
+                    else {
+                        console.log(`Country code match: ${countryCode}`);
+                        actuallySendScore(1, gameId);
 
-                if (differences.length > 0) {
-                    console.log("🕵️ Änderungen erkannt:");
-                    differences.forEach(diff => {
-                        console.log(` - ${diff.key}:`, diff.old, "→", diff.new);
-                    });
-
-                    lastStreakRelevant = { ...relevant }; // Update Zustand
-
-                    // Score berechnen
-                    let calculatedScore = 0;
-                    if (relevant.guess_name === relevant.location_name) {
-                        console.log("✅ Richtiges Land: " + relevant.guess_name);
-                        calculatedScore = 1;
-                    } else {
-                        console.log("❌ Falsches Land: " + relevant.guess_name + " ≠ " + relevant.location_name);
-                        calculatedScore = 0;
                     }
+                    // You can do something with the address here, like displaying it in the UI
+                })
+                .catch(error => {
+                    console.error('Error fetching address:', error);
+                });
+        }
 
-                    clearInterval(interval); // ⛔ Stoppe Überwachung
-                    log("📊 Final score for streak:", calculatedScore);
-                    actuallySendScore(calculatedScore, gameId);
-                }
 
-            } catch (err) {
-                console.warn("❗ Fehler beim Parsen oder Vergleichen:", err);
-            }
-        }, 100);
+        // let lastStreakRelevant = null;
+
+        // const interval = setInterval(() => {
+        //     const raw = localStorage.getItem("KodiakChallengeCountryStreak");
+        //     if (!raw) return;
+
+        //     try {
+        //         const parsed = JSON.parse(raw);
+
+        //         // last_guess_identifier ignorieren
+        //         const { last_guess_identifier, ...relevant } = parsed;
+
+        //         if (!lastStreakRelevant) {
+        //             lastStreakRelevant = relevant;
+        //             return; // Erste Runde: nur speichern, nicht vergleichen
+        //         }
+
+        //         // Vergleiche alte und neue relevante Felder
+        //         const differences = [];
+        //         for (const key of Object.keys(relevant)) {
+        //             if (relevant[key] !== lastStreakRelevant[key]) {
+        //                 differences.push({
+        //                     key,
+        //                     old: lastStreakRelevant[key],
+        //                     new: relevant[key]
+        //                 });
+        //             }
+        //         }
+
+        //         if (differences.length > 0) {
+        //             console.log("🕵️ Änderungen erkannt:");
+        //             differences.forEach(diff => {
+        //                 console.log(` - ${diff.key}:`, diff.old, "→", diff.new);
+        //             });
+
+        //             lastStreakRelevant = { ...relevant }; // Update Zustand
+
+        //             // Score berechnen
+        //             let calculatedScore = 0;
+        //             if (relevant.guess_name === relevant.location_name) {
+        //                 console.log("✅ Richtiges Land: " + relevant.guess_name);
+        //                 calculatedScore = 1;
+        //             } else {
+        //                 console.log("❌ Falsches Land: " + relevant.guess_name + " ≠ " + relevant.location_name);
+        //                 calculatedScore = 0;
+        //             }
+
+        //             clearInterval(interval); // ⛔ Stoppe Überwachung
+        //             log("📊 Final score for streak:", calculatedScore);
+        //             actuallySendScore(calculatedScore, gameId);
+        //         }
+
+        //     } catch (err) {
+        //         console.warn("❗ Fehler beim Parsen oder Vergleichen:", err);
+        //     }
+        // }, 100);
+        catch (error) {
+            console.error('Error fetching country code:', error);
+        }
     } else {
         // Streak aus → direkt senden
         log("➡️ Streak deaktiviert, übergebe Score direkt:", score);
@@ -355,19 +392,19 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
     .then(() => {
         if (localStorage.getItem("kodiak-enable") === "true") {
 
-            const GSF = new GeoGuessrStreakFramework({
-                storage_identifier: 'KodiakChallengeCountryStreak',
-                name: 'Country Streak',
-                terms: {
-                    single: 'country',
-                    plural: 'countries'
-                },
-                enabled_on_challenges: CHALLENGE,
-                automatic: AUTOMATIC,
-                language: LANGUAGE,
-                only_match_country_code: true,
-                address_matches: ['country'],
-            })
+            // const GSF = new GeoGuessrStreakFramework({
+            //     storage_identifier: 'KodiakChallengeCountryStreak',
+            //     name: 'Country Streak',
+            //     terms: {
+            //         single: 'country',
+            //         plural: 'countries'
+            //     },
+            //     enabled_on_challenges: CHALLENGE,
+            //     automatic: AUTOMATIC,
+            //     language: LANGUAGE,
+            //     only_match_country_code: true,
+            //     address_matches: ['country'],
+            // })
 
             fetchAndStoreUserFeatures();
 
@@ -379,10 +416,11 @@ fetch(`https://pihezigo.myhostpoint.ch/api.php?action=get_text&username=${encode
 
                 overrideWeiterButtonIfNeeded();
 
-                const state = event.detail.fetchResponse;
-                const guess = state.guesses?.[state.guesses.length - 1] ?? {};
-                const score = guess.roundScoreInPoints ?? null;
-                const gameId = state.token ?? null;
+                state = event.detail.fetchResponse;
+                guess = state.guesses?.[state.guesses.length - 1] ?? {};
+                score = guess.roundScoreInPoints ?? null;
+                gameId = state.token ?? null;
+                lastRoundCC = state.rounds[state.rounds.length - 1].streakLocationCode;
 
                 log('📊 Extracted score:', score, '| Game ID:', gameId);
 

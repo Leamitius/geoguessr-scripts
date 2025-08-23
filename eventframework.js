@@ -27,9 +27,7 @@
         document.dispatchEvent(new CustomEvent(name, { detail: data }));
     }
 
-    let lastFetchTimeout = null;
-
-    // --- Intercept fetch ---
+    // --- Intercept fetch (only round_end) ---
     const originalFetch = window.fetch;
     window.fetch = function (...args) {
         return originalFetch.apply(this, args).then(async response => {
@@ -37,53 +35,14 @@
             if (isExactGameFetch(u)) {
                 const cloned = response.clone();
                 const data = await cloned.json().catch(() => null);
-
-                // fetch → round_end
-                clearTimeout(lastFetchTimeout);
-                lastFetchTimeout = setTimeout(() => {
-                    triggerEvent("round_end", { fetchResponse: data });
-                }, 300);
+                triggerEvent("round_end", { fetchResponse: data });
             }
             return response;
         });
     };
-
-    // --- Intercept XHR ---
-    const originalOpen = XMLHttpRequest.prototype.open;
-    const originalSend = XMLHttpRequest.prototype.send;
-
-    XMLHttpRequest.prototype.open = function (method, url) {
-        this._isTarget = typeof url === 'string' && url.includes('GetMetadata');
-        return originalOpen.apply(this, arguments);
-    };
-
-    XMLHttpRequest.prototype.send = function (body) {
-        if (this._isTarget) {
-            this.addEventListener('load', () => {
-                try {
-                    const data = JSON.parse(this.responseText);
-                    // if no fetch fired → round_start
-                    if (!lastFetchTimeout) {
-                        triggerEvent("round_start", { xhrResponse: data });
-                    }
-                } catch (e) {
-                    console.warn("XHR parse failed", e);
-                }
-            });
-        }
-        return originalSend.apply(this, arguments);
-    };
 })();
 
-
-
-
-document.addEventListener("round_start", function (event) {
-    localStorage.setItem("roundStatus", "started");
-
-    // Handle round start logic here
-});
-
+// Listen for round_end event
 document.addEventListener("round_end", function (event) {
     localStorage.setItem("roundStatus", "ended");
     // Handle round end logic here
