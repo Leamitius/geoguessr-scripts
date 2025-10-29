@@ -5,6 +5,8 @@
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
+// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
+// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
 // @run-at       document-start
 // ==/UserScript==
 
