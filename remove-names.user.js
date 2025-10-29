@@ -1,13 +1,11 @@
 // ==UserScript==
-// @name         Clean Up, Rename, and React-Safe Auto-Click 3rd Round (Safe Rename)
+// @name         GTE replay cover
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.8
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
-// @run-at       document-end
-// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
-// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
+// @run-at       document-start
 // ==/UserScript==
 
 (function() {
@@ -24,7 +22,6 @@
         .version4_layout__XumXk{
         --sidetray-compact-width: 0;
         }
-
 
     `;
     document.documentElement.appendChild(hideStyle);
@@ -81,6 +78,24 @@
 
     const observer = new MutationObserver(applyAll);
     observer.observe(document.body, { childList: true, subtree: true });
+
+    const newSrc = 'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png';
+
+    // Beobachter erstellen
+    const observer2 = new MutationObserver(() => {
+        const img = document.querySelector('.styles_image__vpfH1');
+        if (img) {
+            img.src = newSrc;         // src ändern
+            observer.disconnect();    // Beobachtung stoppen, wenn gefunden
+            console.log('Bild gefunden und geändert!');
+        }
+    });
+
+    // Beobachtung starten (auf dem gesamten Dokument)
+    observer2.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 
 
 })();
