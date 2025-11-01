@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         GTE replay cover
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.9
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
+// @match        https://www.geoguessr.com/duels/*/summary*
 // @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
 // @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-names.user.js
 // @run-at       document-start
@@ -34,7 +35,9 @@
         'health-bar-2_nickContainer__ZO0eM',
         'replay-footer_playedRoundsHeader__0sWNX',
         "version4_headerWrapper__oyraB",
-        "version4_sidebar__YO8X8"
+        "version4_sidebar__YO8X8",
+        "game-summary_playedRoundsHeader__R3Kye",
+        "replay-footer_playerSelector__mxhOU"
     ];
 
     function removeElements() {
@@ -81,16 +84,23 @@
     const observer = new MutationObserver(applyAll);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const newSrc = 'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png';
+    const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
+                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
+                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png'];
 
     // Beobachter erstellen
     const observer2 = new MutationObserver(() => {
-        const img = document.querySelector('.styles_image__vpfH1');
-        if (img) {
-            img.src = newSrc;         // src ändern
-            observer.disconnect();    // Beobachtung stoppen, wenn gefunden
-            console.log('Bild gefunden und geändert!');
-        }
+        const img = document.querySelectorAll('.styles_image__vpfH1');
+        console.log(img);
+        img.forEach((element, index) => {
+            if (element) {
+                element.src = newSrc[index % 2];
+
+                observer.disconnect(); // Beobachtung stoppen, wenn gefunden (würde nach dem 1. Element passieren)
+                console.log('Bild gefunden und geändert an Index:', index);
+            }
+        });
+
     });
 
     // Beobachtung starten (auf dem gesamten Dokument)
