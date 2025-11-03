@@ -85,7 +85,7 @@
     observer.observe(document.body, { childList: true, subtree: true });
 
     const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
-                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
+                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png',
                     'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png'];
 
     // Beobachter erstellen
