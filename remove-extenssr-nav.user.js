@@ -5,6 +5,8 @@
 // @icon         https://www.google.com/s2/favicons?domain=geoguessr.com
 // @description  Removes elements with data-qa="extenssr__nav-item"
 // @match        *://*.geoguessr.com/*
+// @downloadURL  https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-extenssr-nav.user.js
+// @updateURL    https://github.com/Leamitius/geoguessr-scripts/raw/refs/heads/main/remove-extenssr-nav.user.js
 // @run-at       document-end
 // ==/UserScript==
 
