@@ -85,16 +85,19 @@
     observer.observe(document.body, { childList: true, subtree: true });
 
     const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
-                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png',
-                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png'];
+                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png',
+                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png'];
 
     // Beobachter erstellen
     const observer2 = new MutationObserver(() => {
+        var list = document.getElementsByClassName("game-summary_text__viPc6");
+        var offset = list[list.length-1].textContent == '0';
+
         const img = document.querySelectorAll('.styles_image__vpfH1');
         console.log(img);
         img.forEach((element, index) => {
             if (element) {
-                element.src = newSrc[index % 2];
+                element.src = newSrc[(index+offset) % 2];
 
                 observer.disconnect(); // Beobachtung stoppen, wenn gefunden (würde nach dem 1. Element passieren)
                 console.log('Bild gefunden und geändert an Index:', index);
