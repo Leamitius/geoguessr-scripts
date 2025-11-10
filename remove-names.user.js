@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GTE replay cover
 // @namespace    http://tampermonkey.net/
-// @version      1.10
+// @version      1.12
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
@@ -11,7 +11,7 @@
 // @run-at       document-start
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     // 0️⃣ Prevent flash
@@ -51,7 +51,7 @@
         const labels = document.querySelectorAll('.switch_label__KrnMF');
         if (labels.length >= 2) {
             // only rename if both exist and have text already
-            if ((labels[0].textContent.trim() && labels[1].textContent.trim())&& labels[0].textContent != 'Me') {
+            if ((labels[0].textContent.trim() && labels[1].textContent.trim()) && labels[0].textContent != 'Me') {
                 labels[0].textContent = 'Me';
                 labels[1].textContent = 'Opponent';
 
@@ -67,7 +67,7 @@
     function clickRound(round) {
         const rounds = document.querySelectorAll('.game-summary_playedRound__VukPu.game-summary_compact__gm_o_');
         if (rounds.length >= 3) {
-            const third = rounds[round-1];
+            const third = rounds[round - 1];
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             third.dispatchEvent(clickEvent);
             console.log('✅ Clicked 3rd round once');
@@ -84,17 +84,21 @@
     const observer = new MutationObserver(applyAll);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
-                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png',
-                    'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png'];
+    const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png',
+        'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
+
+        'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png'];
 
     // Beobachter erstellen
     const observer2 = new MutationObserver(() => {
+        var list = document.getElementsByClassName("game-summary_text__viPc6");
+        var offset = list[list.length - 1].textContent == '0';
+
         const img = document.querySelectorAll('.styles_image__vpfH1');
         console.log(img);
         img.forEach((element, index) => {
             if (element) {
-                element.src = newSrc[index % 2];
+                element.src = newSrc[(index + offset) % 2];
 
                 observer.disconnect(); // Beobachtung stoppen, wenn gefunden (würde nach dem 1. Element passieren)
                 console.log('Bild gefunden und geändert an Index:', index);
