@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GTE replay cover
 // @namespace    http://tampermonkey.net/
-// @version      1.12
+// @version      1.13
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
@@ -85,30 +85,77 @@
     const observer = new MutationObserver(applyAll);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const newSrc = ['https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png',
+   let offset = 0; // default
+
+    function waitForPins() {
+        console.log("waiting");
+        const el = document.getElementsByClassName("map-pin_mapPin__vG6pA")[0];
+        if (!el) {
+            requestAnimationFrame(waitForPins);
+            return;
+        }
+
+        const parent = el.parentElement.parentElement;
+
+        const children = parent.querySelectorAll(':scope > div[style*="position: absolute"]');
+        if (children.length < 3) {
+            requestAnimationFrame(waitForPins);
+            return;
+        }
+
+        function getPos(el) {
+            return {
+                left: parseFloat(el.style.left),
+                top: parseFloat(el.style.top)
+            };
+        }
+
+        const pos2 = getPos(children[0]);
+        const pos3 = getPos(children[1]);
+        const pos4 = getPos(children[2]);
+
+        function distance(a, b) {
+            return Math.hypot(a.left - b.left, a.top - b.top);
+        }
+
+        const dist2 = distance(pos2, pos4);
+        const dist3 = distance(pos3, pos4);
+
+        // 👉 if second pin is closer → offset = 0
+        // 👉 if third pin is closer → offset = 1
+        offset = dist2 < dist3 ? 0 : 1;
+
+        console.log("Nearest pin → offset =", offset);
+    }
+
+    waitForPins();
+
+
+    //------------------------------------------------------------
+    // 2. MUTATIONOBSERVER THAT REPLACES IMAGES USING THE OFFSET
+    //------------------------------------------------------------
+
+    const newSrc = [
+        'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/5ca410027c7c8feffea1c834fb6b0741.png',
         'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/fcb275d1f1f1ef366f4a44ef294fd1f0.png',
+        'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png'
+    ];
 
-        'https://www.geoguessr.com/images/resize:auto:48:48/gravity:ce/plain/pin/eb442742b3654d40a7b2b7ec6a2a0b59.png'];
-
-    // Beobachter erstellen
     const observer2 = new MutationObserver(() => {
-        var list = document.getElementsByClassName("game-summary_text__viPc6");
-        var offset = list[list.length - 1].textContent == '0';
+            waitForPins();
 
-        const img = document.querySelectorAll('.styles_image__vpfH1');
-        console.log(img);
-        img.forEach((element, index) => {
+        const imgs = document.querySelectorAll('.styles_image__vpfH1');
+        if (!imgs.length) return;
+
+        imgs.forEach((element, index) => {
             if (element) {
-                element.src = newSrc[(index + offset) % 2];
-
-                observer.disconnect(); // Beobachtung stoppen, wenn gefunden (würde nach dem 1. Element passieren)
-                console.log('Bild gefunden und geändert an Index:', index);
+                // Use the offset determined by closest pin
+                const srcIndex = (index + offset) % 2;
+                element.src = newSrc[srcIndex];
             }
         });
-
     });
 
-    // Beobachtung starten (auf dem gesamten Dokument)
     observer2.observe(document.body, {
         childList: true,
         subtree: true
