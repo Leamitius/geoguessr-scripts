@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GTE replay cover
 // @namespace    http://tampermonkey.net/
-// @version      1.14
+// @version      1.15
 // @icon         https://static-cdn.jtvnw.net/jtv_user_pictures/18dd44f1-9431-488c-a88f-74b363f52579-profile_image-70x70.png
 // @description  Safely remove elements, rename first/second switch labels, auto-click 3rd round once, no flash, no React freeze
 // @match        https://www.geoguessr.com/duels/*/replay*
@@ -88,7 +88,7 @@
    let offset; // default
 
     function waitForPins() {
-        console.log("waiting");
+        // console.log("waiting");
         const el = document.getElementsByClassName("map-pin_mapPin__vG6pA")[0];
         if (!el) {
             requestAnimationFrame(waitForPins);
@@ -123,11 +123,11 @@
 
         // 👉 if second pin is closer → offset = 0
         // 👉 if third pin is closer → offset = 1
-        if(offset == NaN){
+        if(offset == undefined){
             offset = dist2 < dist3 ? 0 : 1;
         }
 
-        console.log("Nearest pin → offset =", offset);
+        // console.log("Nearest pin → offset =", offset);
     }
 
     waitForPins();
