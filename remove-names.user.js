@@ -85,12 +85,13 @@
     const observer = new MutationObserver(applyAll);
     observer.observe(document.body, { childList: true, subtree: true });
 
-   let offset; // default
+    let offset; // default
 
     function waitForPins() {
-        // console.log("waiting");
+        //console.log("waiting");
         const el = document.getElementsByClassName("map-pin_mapPin__vG6pA")[0];
         if (!el) {
+            //console.log("1")
             requestAnimationFrame(waitForPins);
             return;
         }
@@ -99,6 +100,11 @@
 
         const children = parent.querySelectorAll(':scope > div[style*="position: absolute"]');
         if (children.length < 3) {
+            if (children.length > 0) {
+                offset = 0;
+                return
+            }
+            //console.log("2")
             requestAnimationFrame(waitForPins);
             return;
         }
@@ -123,11 +129,11 @@
 
         // 👉 if second pin is closer → offset = 0
         // 👉 if third pin is closer → offset = 1
-        if(offset == undefined){
+        if (offset == undefined) {
             offset = dist2 < dist3 ? 0 : 1;
         }
 
-        // console.log("Nearest pin → offset =", offset);
+        //console.log("Nearest pin → offset =", offset);
     }
 
     waitForPins();
@@ -144,7 +150,7 @@
     ];
 
     const observer2 = new MutationObserver(() => {
-            waitForPins();
+        waitForPins();
 
         const imgs = document.querySelectorAll('.styles_image__vpfH1');
         if (!imgs.length) return;
